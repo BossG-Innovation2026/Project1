@@ -2,12 +2,15 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { queryAll, queryOne, runSql } from "@/lib/db";
 import { getSessionUser } from "@/lib/session";
 import { isAdmin } from "@/lib/modules";
+import { TERMS, type Term } from "@/lib/terms";
 
 export interface ActionState {
   error?: string;
+  message?: string;
   needsConfirm?: boolean;
   ok?: boolean;
 }
@@ -31,6 +34,17 @@ export interface ClassSubjectRow {
   description: string;
   teacherId: string | null;
   teacherName: string | null;
+  term: number;
+  createdAt: number;
+}
+
+export interface StudentRow {
+  id: string;
+  lrn: string;
+  surname: string;
+  firstname: string;
+  middlename: string;
+  sex: string;
   createdAt: number;
 }
 
@@ -67,15 +81,24 @@ export async function getClass(id: string): Promise<ClassRow | undefined> {
   );
 }
 
-export async function listClassSubjects(classId: string): Promise<ClassSubjectRow[]> {
+export async function listClassSubjects(classId: string, term: number): Promise<ClassSubjectRow[]> {
   return queryAll<ClassSubjectRow>(
-    `SELECT cs.id, cs.classId, cs.subjectId, cs.code, cs.title, cs.description, cs.teacherId, u.name AS teacherName, cs.createdAt
+    `SELECT cs.id, cs.classId, cs.subjectId, cs.code, cs.title, cs.description, cs.teacherId, u.name AS teacherName, cs.term, cs.createdAt
      FROM class_subject cs
      LEFT JOIN user u ON u.id = cs.teacherId
-     WHERE cs.classId = ?
+     WHERE cs.classId = ? AND cs.term = ?
      ORDER BY cs.title COLLATE NOCASE`,
+    classId,
+    term
+  );
+}
+
+export async function countClassSubjects(classId: string): Promise<number> {
+  const row = await queryOne<{ c: number }>(
+    "SELECT COUNT(*) AS c FROM class_subject WHERE classId = ?",
     classId
   );
+  return Number(row?.c ?? 0);
 }
 
 export async function listActiveTeachers(): Promise<{ id: string; name: string }[]> {
@@ -114,7 +137,7 @@ function nextSectionName(gradeLevelName: string, count: number): string {
 export async function createClass(
   _prev: ActionState,
   formData: FormData
-): Promise<ActionState> {
+): Promise<ActionState | never> {
   const user = await currentUser();
   if (!user) return { error: "You are not signed in." };
 
@@ -151,8 +174,6 @@ export async function createClass(
     };
   }
 
-  const now = Date.now();
-
   const validTeacherIds = new Set((await listActiveTeachers()).map((t) => t.id));
   const assignedTeacher = (raw: string | null): string | null =>
     raw && validTeacherIds.has(raw) ? raw : null;
@@ -160,9 +181,6 @@ export async function createClass(
   const curriculumSubjects = new Map(
     (await listSubjectsByGrade(gradeLevelId)).map((s) => [s.id, s])
   );
-  if (curriculumSubjects.size === 0) {
-    return { error: "No subjects defined for this grade level yet. Add them in Curriculum Setup first." };
-  }
 
   const subjectEntries = Array.from(formData.keys())
     .filter((k) => k.startsWith("subject_"))
@@ -174,11 +192,12 @@ export async function createClass(
     const subject = curriculumSubjects.get(subjectId);
     if (!subject) return { error: "A chosen subject does not belong to this grade level." };
     if (usedCodes.has(subject.code)) {
-      return { error: `Subject ${subject.code} was added twice.` };
+      return { error: `Subject ${subject.code} was added twice in Term 1.` };
     }
     usedCodes.add(subject.code);
   }
 
+  const now = Date.now();
   const classId = randomUUID();
   await runSql(
     "INSERT INTO class (id, name, gradeLevelId, adviserId, createdAt) VALUES (?, ?, ?, ?, ?)",
@@ -194,7 +213,7 @@ export async function createClass(
     const description = String(formData.get(`desc_${key}`) ?? "").trim();
     const teacherId = assignedTeacher(String(formData.get(`teacher_${key}`) ?? "") || null);
     await runSql(
-      "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, term, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)",
       randomUUID(),
       classId,
       subject.id,
@@ -207,8 +226,7 @@ export async function createClass(
   }
 
   revalidatePath("/classes");
-  revalidatePath("/classes/new");
-  return { ok: true };
+  redirect(`/classes/${classId}`);
 }
 
 export async function setSubjectTeacher(formData: FormData): Promise<void> {
@@ -243,6 +261,9 @@ export async function addClassSubject(
     return { error: "You can only manage classes you advise." };
   }
 
+  const term = Number(formData.get("term") ?? 1);
+  if (!TERMS.includes(term as Term)) return { error: "Invalid term." };
+
   const subjectId = String(formData.get("subjectId") ?? "");
   const subject = await queryOne<{ id: string; code: string; title: string }>(
     "SELECT id, code, title FROM subject WHERE id = ? AND gradeLevelId = ?",
@@ -255,14 +276,15 @@ export async function addClassSubject(
   const teacherId = String(formData.get("teacherId") ?? "") || null;
 
   const clash = await queryOne<{ id: string }>(
-    "SELECT id FROM class_subject WHERE classId = ? AND code = ?",
+    "SELECT id FROM class_subject WHERE classId = ? AND code = ? AND term = ?",
     classId,
-    subject.code
+    subject.code,
+    term
   );
-  if (clash) return { error: `${subject.code} is already in this class.` };
+  if (clash) return { error: `${subject.code} is already in this class for Term ${term}.` };
 
   await runSql(
-    "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, term, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     randomUUID(),
     classId,
     subject.id,
@@ -270,6 +292,7 @@ export async function addClassSubject(
     subject.title,
     description,
     teacherId,
+    term,
     Date.now()
   );
 
@@ -330,4 +353,203 @@ export async function renameClass(
   revalidatePath("/classes");
   revalidatePath(`/classes/${classId}`);
   return { ok: true };
+}
+
+// --- Students / enrollment ---
+
+export async function listStudents(classId: string): Promise<StudentRow[]> {
+  return queryAll<StudentRow>(
+    `SELECT s.id, s.lrn, s.surname, s.firstname, s.middlename, s.sex, s.createdAt
+     FROM enrollment e
+     JOIN student s ON s.id = e.studentId
+     WHERE e.classId = ?
+     ORDER BY s.surname COLLATE NOCASE, s.firstname COLLATE NOCASE`,
+    classId
+  );
+}
+
+export async function upsertStudent(
+  lrn: string,
+  surname: string,
+  firstname: string,
+  middlename: string,
+  sex: string
+): Promise<string> {
+  const now = Date.now();
+  const existing = await queryOne<{ id: string }>("SELECT id FROM student WHERE lrn = ?", lrn);
+  if (existing) {
+    await runSql(
+      "UPDATE student SET surname = ?, firstname = ?, middlename = ?, sex = ? WHERE id = ?",
+      surname,
+      firstname,
+      middlename,
+      sex,
+      existing.id
+    );
+    return existing.id;
+  }
+  const id = randomUUID();
+  await runSql(
+    "INSERT INTO student (id, lrn, surname, firstname, middlename, sex, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    id,
+    lrn,
+    surname,
+    firstname,
+    middlename,
+    sex,
+    now
+  );
+  return id;
+}
+
+async function enroll(studentId: string, classId: string): Promise<void> {
+  const existing = await queryOne<{ id: string }>(
+    "SELECT id FROM enrollment WHERE classId = ? AND studentId = ?",
+    classId,
+    studentId
+  );
+  if (existing) return;
+  await runSql(
+    "INSERT INTO enrollment (id, classId, studentId, createdAt) VALUES (?, ?, ?, ?)",
+    randomUUID(),
+    classId,
+    studentId,
+    Date.now()
+  );
+}
+
+export async function enrollStudent(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await currentUser();
+  if (!user) return { error: "You are not signed in." };
+
+  const classId = String(formData.get("classId") ?? "");
+  if (!(await canManageClass(user, classId))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const lrn = String(formData.get("lrn") ?? "").trim();
+  const surname = String(formData.get("surname") ?? "").trim();
+  const firstname = String(formData.get("firstname") ?? "").trim();
+  const middlename = String(formData.get("middlename") ?? "").trim();
+  const sex = String(formData.get("sex") ?? "").trim().toUpperCase();
+
+  if (!lrn) return { error: "LRN is required." };
+  if (!surname || !firstname) return { error: "Surname and first name are required." };
+  if (sex !== "M" && sex !== "F") return { error: "Sex must be M or F." };
+
+  const studentId = await upsertStudent(lrn, surname, firstname, middlename, sex);
+  const existing = await queryOne<{ id: string }>(
+    "SELECT id FROM enrollment WHERE classId = ? AND studentId = ?",
+    classId,
+    studentId
+  );
+  if (existing) return { error: `Student ${lrn} is already enrolled in this class.` };
+
+  await enroll(studentId, classId);
+  revalidatePath(`/classes/${classId}`);
+  return { ok: true };
+}
+
+function parseCsv(text: string): string[][] {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
+  const rows: string[][] = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const fields: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (const ch of line) {
+      if (ch === '"') inQuotes = !inQuotes;
+      else if (ch === "," && !inQuotes) {
+        fields.push(cur.trim());
+        cur = "";
+      } else cur += ch;
+    }
+    fields.push(cur.trim());
+    rows.push(fields);
+  }
+  return rows;
+}
+
+export async function enrollFromTemplate(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const user = await currentUser();
+  if (!user) return { error: "You are not signed in." };
+
+  const classId = String(formData.get("classId") ?? "");
+  if (!(await canManageClass(user, classId))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const file = formData.get("file");
+  if (!file || typeof file === "string") return { error: "Choose a CSV file to upload." };
+  const text = await file.text();
+
+  const rows = parseCsv(text);
+  if (rows.length === 0) return { error: "The file is empty." };
+
+  const header = rows[0];
+  if (
+    header.length === 5 &&
+    header[0].toUpperCase() === "LRN" &&
+    header[1].toUpperCase() === "SURNAME"
+  ) {
+    rows.shift();
+  }
+
+  let added = 0;
+  let skipped = 0;
+  let invalid = 0;
+  for (const row of rows) {
+    if (row.length < 4) {
+      invalid += 1;
+      continue;
+    }
+    const lrn = String(row[0] ?? "").trim();
+    const surname = String(row[1] ?? "").trim();
+    const firstname = String(row[2] ?? "").trim();
+    const middlename = String(row[3] ?? "").trim();
+    const sex = String(row[4] ?? "").trim().toUpperCase();
+
+    if (!lrn || !surname || !firstname || (sex !== "M" && sex !== "F")) {
+      invalid += 1;
+      continue;
+    }
+
+    const studentId = await upsertStudent(lrn, surname, firstname, middlename, sex);
+    const existing = await queryOne<{ id: string }>(
+      "SELECT id FROM enrollment WHERE classId = ? AND studentId = ?",
+      classId,
+      studentId
+    );
+    if (existing) {
+      skipped += 1;
+      continue;
+    }
+    await enroll(studentId, classId);
+    added += 1;
+  }
+
+  revalidatePath(`/classes/${classId}`);
+  return {
+    ok: true,
+    message: `Enrolled ${added} student(s). Skipped ${skipped} already enrolled. Invalid rows: ${invalid}.`,
+  };
+}
+
+export async function unenrollStudent(formData: FormData): Promise<void> {
+  const user = await currentUser();
+  if (!user) return;
+
+  const classId = String(formData.get("classId") ?? "");
+  if (!(await canManageClass(user, classId))) return;
+
+  const studentId = String(formData.get("studentId") ?? "");
+  await runSql("DELETE FROM enrollment WHERE classId = ? AND studentId = ?", classId, studentId);
+  revalidatePath(`/classes/${classId}`);
 }

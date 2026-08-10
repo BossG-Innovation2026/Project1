@@ -5,10 +5,12 @@ import { addClassSubject, type ActionState } from "./actions";
 
 export function AddClassSubjectForm({
   classId,
+  term,
   subjects,
   teachers,
 }: {
   classId: string;
+  term: number;
   subjects: { id: string; code: string; title: string }[];
   teachers: { id: string; name: string }[];
 }) {
@@ -17,6 +19,7 @@ export function AddClassSubjectForm({
   return (
     <form action={action} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4 sm:items-end">
       <input type="hidden" name="classId" value={classId} />
+      <input type="hidden" name="term" value={term} />
       <label className="sm:col-span-1">
         <span className="text-xs text-muted">Subject</span>
         <select

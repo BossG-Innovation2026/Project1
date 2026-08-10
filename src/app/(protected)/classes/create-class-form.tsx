@@ -108,9 +108,10 @@ export function CreateClassForm({ data }: { data: CreateClassData }) {
         <div className="rounded-lg border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Subjects of {gradeName}</h2>
+              <h2 className="text-sm font-semibold text-foreground">Term 1 subjects</h2>
               <p className="mt-0.5 text-xs text-muted">
-                Add each subject taught in this class from the curriculum list.
+                Subjects taught in Term 1, picked from the {gradeName} curriculum. Terms 2 and 3
+                can be set up later on the class page.
               </p>
             </div>
             <button
@@ -124,7 +125,7 @@ export function CreateClassForm({ data }: { data: CreateClassData }) {
           </div>
           {rows.length === 0 ? (
             <p className="px-4 py-6 text-sm text-subtle">
-              No subjects added yet. Click “Add subject” to pick from the curriculum.
+              No Term 1 subjects added yet. Click “Add subject” to pick from the curriculum.
             </p>
           ) : (
             <div className="divide-y divide-border">
