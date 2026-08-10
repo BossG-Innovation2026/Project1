@@ -19,6 +19,18 @@ function createAuth() {
           defaultValue: "teacher",
           input: false,
         },
+        permissions: {
+          type: "string",
+          required: true,
+          defaultValue: "[]",
+          input: false,
+        },
+        active: {
+          type: "number",
+          required: true,
+          defaultValue: 1,
+          input: false,
+        },
       },
     },
     session: {

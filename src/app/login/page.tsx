@@ -72,9 +72,11 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-xs text-slate-400">
-          Demo accounts: admin@school.local · teacher@school.local
+          Demo accounts (all use Password123!):
           <br />
-          Both use Password123!
+          admin@school.local (Super Admin) · admin2@school.local (Admin)
+          <br />
+          teacher@school.local · registrar@school.local · coordinator@school.local
         </p>
       </div>
     </main>

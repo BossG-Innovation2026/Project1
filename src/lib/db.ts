@@ -38,3 +38,27 @@ export function getEnvVar(name: string): string | undefined {
   }
   return process.env[name];
 }
+
+type DbValue = string | number | bigint | null | Uint8Array;
+
+export async function runSql(sql: string, ...params: DbValue[]): Promise<unknown> {
+  const db = getDatabase();
+  if ("batch" in db) {
+    return await db.prepare(sql).bind(...params).run();
+  }
+  return db.prepare(sql).run(...params);
+}
+
+export async function queryAll<T>(sql: string, ...params: DbValue[]): Promise<T[]> {
+  const db = getDatabase();
+  if ("batch" in db) {
+    return (await db.prepare(sql).bind(...params).all()).results as T[];
+  }
+  const rows = db.prepare(sql).all(...params) as T[];
+  return rows.map((row) => ({ ...(row as Record<string, unknown>) }) as T);
+}
+
+export async function queryOne<T>(sql: string, ...params: DbValue[]): Promise<T | undefined> {
+  const rows = await queryAll<T>(sql, ...params);
+  return rows[0];
+}

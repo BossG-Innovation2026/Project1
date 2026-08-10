@@ -6,6 +6,8 @@ export interface SessionUser {
   name: string;
   email: string;
   role: string;
+  permissions: string;
+  active: number;
   image?: string | null;
 }
 
@@ -20,5 +22,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     headers: new Headers({ cookie: cookieHeader }),
   });
   if (!session?.user) return null;
-  return session.user as SessionUser;
+  const user = session.user as SessionUser;
+  if (!user.active) return null;
+  return user;
 }
