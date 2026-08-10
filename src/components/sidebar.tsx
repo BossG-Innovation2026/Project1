@@ -91,7 +91,9 @@ export function Sidebar({
           {!collapsed && "Dashboard"}
         </Link>
         {links.length === 0 && !collapsed && (
-          <p className="px-3 py-2 text-xs text-slate-400">No modules available yet.</p>
+          <p className="px-3 py-2 text-xs text-slate-400">
+            No modules assigned yet. Contact an admin.
+          </p>
         )}
         {links.map((item) => {
           const Icon = item.module ? MODULE_ICONS[item.module] : null;

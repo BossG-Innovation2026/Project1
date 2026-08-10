@@ -89,13 +89,15 @@ async function check(name, cond, extra = "") {
   await check("teacher lands on dashboard", page.url().includes("/dashboard"));
 const nav = await page.locator("nav").innerText();
   await check(
-    "teacher panel shows all modules",
+    "teacher panel shows only accessed modules",
     nav.includes("Dashboard") &&
-      nav.includes("Account Management") &&
       nav.includes("Curriculum Setup") &&
       nav.includes("Grade Submission") &&
-      nav.includes("School Registrar") &&
-      nav.includes("Login Codes"),
+      !nav.includes("Account Management") &&
+      !nav.includes("Class Creation") &&
+      !nav.includes("Grades Approval") &&
+      !nav.includes("School Registrar") &&
+      !nav.includes("Login Codes"),
     nav.replace(/\n/g, " | ")
   );
   await page.goto(`${BASE}/accounts`);
