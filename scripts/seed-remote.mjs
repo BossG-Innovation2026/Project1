@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { writeFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,25 +7,26 @@ import { hashPassword } from "better-auth/crypto";
 
 const now = Date.now();
 
-function user(id, name, email, role, password) {
-  return [
-    `INSERT INTO user (id, name, email, emailVerified, createdAt, updatedAt, role)
-     VALUES ('${id}', '${name}', '${email}', 1, ${now}, ${now}, '${role}')
-     ON CONFLICT (email) DO UPDATE SET role = excluded.role, name = excluded.name;`,
-    `INSERT INTO account (id, accountId, providerId, userId, password, createdAt, updatedAt)
-     VALUES ('${randomUUID()}', '${id}', 'credential', '${id}', '${password}', ${now}, ${now})
-     ON CONFLICT DO NOTHING;`,
-  ].join("\n");
+function stableId(prefix, value) {
+  return `${prefix}_${createHash("sha256").update(value).digest("hex")}`;
 }
 
-const adminId = randomUUID();
-const teacherId = randomUUID();
+function user(name, email, role, password) {
+  const accountId = stableId("a", email);
+  return `INSERT INTO user (id, name, email, emailVerified, createdAt, updatedAt, role)
+     VALUES ('${stableId("u", email)}', '${name}', '${email}', 1, ${now}, ${now}, '${role}')
+     ON CONFLICT (email) DO UPDATE SET role = excluded.role, name = excluded.name;
+INSERT INTO account (id, accountId, providerId, userId, password, createdAt, updatedAt)
+     SELECT '${accountId}', u.id, 'credential', u.id, '${password}', ${now}, ${now}
+     FROM user u WHERE u.email = '${email}'
+     ON CONFLICT (id) DO NOTHING;`;
+}
 
 const pw = await hashPassword("Password123!");
 const sql =
-  user(adminId, "School Admin", "admin@school.local", "school_admin", pw) +
+  user("School Admin", "admin@school.local", "school_admin", pw) +
   "\n" +
-  user(teacherId, "John Dela Cruz", "teacher@school.local", "teacher", pw);
+  user("John Dela Cruz", "teacher@school.local", "teacher", pw);
 
 const tmp = join(tmpdir(), `seed-${Date.now()}.sql`);
 writeFileSync(tmp, sql);
