@@ -36,6 +36,10 @@ function createAuth() {
     session: {
       expiresIn: 60 * 60 * 24 * 7,
     },
+    rateLimit: {
+      window: 60,
+      max: 300,
+    },
   });
 }
 

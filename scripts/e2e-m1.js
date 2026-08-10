@@ -104,7 +104,14 @@ async function check(name, cond, extra = "") {
   await page.locator("#email").fill(TEACHER_EMAIL);
   await page.locator("#password").fill("NewPassw0rd123!");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("**/dashboard");
+  try {
+    await page.waitForURL("**/dashboard", { timeout: 30000 });
+  } catch (e) {
+    await page.waitForTimeout(1000);
+    console.log(`--- sign-in (step 6) landed on: ${page.url()} ---`);
+    console.log((await page.locator("body").innerText()).slice(0, 400));
+    throw e;
+  }
   await check("login works with new password", page.url().includes("/dashboard"));
   await signOut(page);
 
@@ -120,7 +127,14 @@ async function check(name, cond, extra = "") {
   await page.locator("#email").fill(TEACHER_EMAIL);
   await page.locator("#password").fill("NewPassw0rd123!");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("**/login");
+  try {
+    await page.waitForURL("**/login", { timeout: 30000 });
+  } catch (e) {
+    await page.waitForTimeout(1000);
+    console.log(`--- sign-in (step 7) landed on: ${page.url()} ---`);
+    console.log((await page.locator("body").innerText()).slice(0, 400));
+    throw e;
+  }
   await check("deactivated user cannot get past login", page.url().includes("/login"));
 
   // --- 8. Super admin sees everything and can create admin accounts
