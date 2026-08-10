@@ -6,9 +6,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   LayoutDashboard,
+  GraduationCap,
   Users,
   BookOpen,
-  GraduationCap,
   PenLine,
   ClipboardCheck,
   Landmark,
@@ -58,24 +58,26 @@ export function Sidebar({
 
   return (
     <aside
-      className={`flex flex-col bg-slate-800 text-white transition-all ${
+      className={`relative flex flex-col bg-slate-800 text-white transition-all ${
         collapsed ? "w-14" : "w-60"
       }`}
     >
-      <div className="flex items-center justify-between border-b border-slate-700 px-4 py-3">
-        {!collapsed && (
+      <button
+        onClick={toggle}
+        title={collapsed ? "Expand panel" : "Collapse panel"}
+        className="absolute right-0 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-700 text-slate-300 shadow hover:bg-slate-600 hover:text-white"
+      >
+        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+      </button>
+      <div className="flex items-center justify-center border-b border-slate-700 px-4 py-3">
+        {!collapsed ? (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">School Portal</p>
             <p className="truncate text-xs text-sky-300">{roleLabel}</p>
           </div>
+        ) : (
+          <GraduationCap size={20} className="shrink-0 text-sky-400" />
         )}
-        <button
-          onClick={toggle}
-          title={collapsed ? "Expand panel" : "Collapse panel"}
-          className="rounded-md p-1.5 text-slate-300 hover:bg-slate-700 hover:text-white"
-        >
-          {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-        </button>
       </div>
       <nav className="flex-1 overflow-y-auto p-3">
         <Link
