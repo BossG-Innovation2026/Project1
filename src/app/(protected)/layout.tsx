@@ -15,14 +15,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-full flex-1">
-      <main className="order-1 min-w-0 flex-1">
-        <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
-          <p className="text-sm text-slate-600">School Portal</p>
-          <p className="text-sm text-slate-400">Signed in as {user.email}</p>
-        </header>
-        <div className="p-6">{children}</div>
-      </main>
-      <aside className="order-2 flex w-60 flex-col bg-slate-800 text-white">
+      <aside className="order-1 flex w-60 flex-col bg-slate-800 text-white">
         <div className="border-b border-slate-700 px-4 py-4">
           <p className="text-sm font-semibold">School Portal</p>
           <p className="text-xs text-sky-300">{ROLE_LABELS[user.role] ?? user.role}</p>
@@ -62,6 +55,13 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <SignOutButton className="mt-3 w-full" />
         </div>
       </aside>
+      <main className="order-2 min-w-0 flex-1">
+        <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
+          <p className="text-sm text-slate-600">School Portal</p>
+          <p className="text-sm text-slate-400">Signed in as {user.email}</p>
+        </header>
+        <div className="p-6">{children}</div>
+      </main>
     </div>
   );
 }
