@@ -33,7 +33,7 @@ export const NAV_LINKS: {
   implemented: boolean;
 }[] = [
   { module: "accounts", href: "/accounts", label: "Account Management", implemented: true },
-  { module: "curriculum", href: "/curriculum", label: "Curriculum Setup", implemented: false },
+  { module: "curriculum", href: "/curriculum", label: "Curriculum Setup", implemented: true },
   { module: "classes", href: "/classes", label: "Class Creation", implemented: false },
   { module: "grades_submit", href: "/grades", label: "Grade Submission", implemented: false },
   { module: "grades_approve", href: "/grades/approval", label: "Grades Approval", implemented: false },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   ChevronLeft,
@@ -29,6 +29,29 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
 
 const STORAGE_KEY = "sidebar-collapsed";
 
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function getSnapshot(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(STORAGE_KEY) === "1";
+}
+
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+function persistCollapsed(next: boolean) {
+  localStorage.setItem(STORAGE_KEY, next ? "1" : "0");
+  listeners.forEach((l) => l());
+}
+
 export function Sidebar({
   userName,
   userEmail,
@@ -40,17 +63,10 @@ export function Sidebar({
   roleLabel: string;
   links: { href: string; label: string; module?: string; implemented: boolean }[];
 }) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    setCollapsed(localStorage.getItem(STORAGE_KEY) === "1");
-  }, []);
+  const collapsed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
-    setCollapsed((c) => {
-      localStorage.setItem(STORAGE_KEY, c ? "0" : "1");
-      return !c;
-    });
+    persistCollapsed(!collapsed);
   }
 
   const navItem =
