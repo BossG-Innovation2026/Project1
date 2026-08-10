@@ -40,7 +40,7 @@ function createAuth() {
       window: 60,
       max: 300,
       customRules: {
-        "/sign-in": { window: 10, max: 20 },
+        "/sign-in*": { window: 10, max: 20 },
       },
     },
   });
