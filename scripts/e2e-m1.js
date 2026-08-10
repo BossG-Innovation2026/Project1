@@ -87,19 +87,21 @@ async function check(name, cond, extra = "") {
   await signOut(page);
   await signIn(page, TEACHER_EMAIL, TEACHER_PASSWORD);
   await check("teacher lands on dashboard", page.url().includes("/dashboard"));
-  const nav = await page.locator("nav").innerText();
+const nav = await page.locator("nav").innerText();
   await check(
-    "teacher nav shows only ticked modules",
+    "teacher panel shows all modules",
     nav.includes("Dashboard") &&
-      !nav.includes("Account Management") &&
-      !nav.includes("Curriculum Setup") &&
-      !nav.includes("Login Codes"),
+      nav.includes("Account Management") &&
+      nav.includes("Curriculum Setup") &&
+      nav.includes("Grade Submission") &&
+      nav.includes("School Registrar") &&
+      nav.includes("Login Codes"),
     nav.replace(/\n/g, " | ")
   );
   await page.goto(`${BASE}/accounts`);
   await check("teacher blocked from /accounts", page.url().includes("/dashboard"));
   const dashText = await page.locator("body").innerText();
-  await check("dashboard shows coming-soon curriculum card", dashText.includes("Coming in a later module"));
+  await check("dashboard shows analytics placeholder", dashText.includes("Analytics and notifications"));
 
   // --- 3. Teacher's own account page is read-only
   const teacherId = (await page.request.get(`${BASE}/api/auth/get-session`, {}));

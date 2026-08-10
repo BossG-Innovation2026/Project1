@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   LayoutDashboard,
   GraduationCap,
   Users,
@@ -38,7 +38,7 @@ export function Sidebar({
   userName: string;
   userEmail: string;
   roleLabel: string;
-  links: { href: string; label: string; module?: string }[];
+  links: { href: string; label: string; module?: string; implemented: boolean }[];
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -67,7 +67,7 @@ export function Sidebar({
         title={collapsed ? "Expand panel" : "Collapse panel"}
         className="absolute right-0 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-700 text-slate-300 shadow hover:bg-slate-600 hover:text-white"
       >
-        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
       <div className="flex items-center justify-center border-b border-slate-700 px-4 py-3">
         {!collapsed ? (
@@ -91,12 +91,29 @@ export function Sidebar({
           {!collapsed && "Dashboard"}
         </Link>
         {links.length === 0 && !collapsed && (
-          <p className="px-3 py-2 text-xs text-slate-400">
-            No other modules assigned yet. Contact an admin.
-          </p>
+          <p className="px-3 py-2 text-xs text-slate-400">No modules available yet.</p>
         )}
         {links.map((item) => {
           const Icon = item.module ? MODULE_ICONS[item.module] : null;
+          if (!item.implemented) {
+            return (
+              <div
+                key={item.href}
+                title={collapsed ? item.label : undefined}
+                className={`${navItem} cursor-default text-slate-400 ${collapsed ? "justify-center px-2" : ""}`}
+              >
+                {Icon && <Icon size={18} className="shrink-0" />}
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 truncate">{item.label}</span>
+                    <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
+                      Soon
+                    </span>
+                  </>
+                )}
+              </div>
+            );
+          }
           return (
             <Link
               key={item.href}

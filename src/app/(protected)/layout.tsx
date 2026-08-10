@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/session";
-import { NAV_LINKS, getPermissions, ROLE_LABELS } from "@/lib/access";
+import { NAV_LINKS, ROLE_LABELS } from "@/lib/access";
 import { Sidebar } from "@/components/sidebar";
 
 export const dynamic = "force-dynamic";
@@ -9,10 +9,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const permissions = getPermissions(user);
-  const links = NAV_LINKS.filter((l) => l.implemented && permissions.includes(l.module)).map(
-    (l) => ({ href: l.href, label: l.label, module: l.module })
-  );
+  const links = NAV_LINKS.map((l) => ({ href: l.href, label: l.label, module: l.module, implemented: l.implemented }));
 
   return (
     <div className="flex min-h-full flex-1">
