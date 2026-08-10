@@ -1,35 +1,45 @@
 "use client";
 
 import { useActionState } from "react";
-import { addOtherSubject, type ActionState } from "./actions";
+import { addClassSubject, type ActionState } from "./actions";
 
-export function AddOtherSubjectForm({
+export function AddClassSubjectForm({
   classId,
+  subjects,
   teachers,
 }: {
   classId: string;
+  subjects: { id: string; code: string; title: string }[];
   teachers: { id: string; name: string }[];
 }) {
-  const [state, action, pending] = useActionState<ActionState, FormData>(addOtherSubject, {});
+  const [state, action, pending] = useActionState<ActionState, FormData>(addClassSubject, {});
 
   return (
     <form action={action} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4 sm:items-end">
       <input type="hidden" name="classId" value={classId} />
-      <label>
-        <span className="text-xs text-muted">Code</span>
-        <input
-          name="code"
+      <label className="sm:col-span-1">
+        <span className="text-xs text-muted">Subject</span>
+        <select
+          name="subjectId"
           required
-          placeholder="e.g. PE-11"
-          className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none"
-        />
+          defaultValue=""
+          className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none"
+        >
+          <option value="" disabled>
+            Select…
+          </option>
+          {subjects.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.code} — {s.title}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="sm:col-span-2">
-        <span className="text-xs text-muted">Title</span>
+        <span className="text-xs text-muted">Description</span>
         <input
-          name="title"
-          required
-          placeholder="e.g. Physical Education"
+          name="description"
+          placeholder="e.g. Covers functions and probability"
           className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none"
         />
       </label>

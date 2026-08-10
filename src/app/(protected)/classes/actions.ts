@@ -28,6 +28,7 @@ export interface ClassSubjectRow {
   subjectId: string | null;
   code: string;
   title: string;
+  description: string;
   teacherId: string | null;
   teacherName: string | null;
   createdAt: number;
@@ -68,7 +69,7 @@ export async function getClass(id: string): Promise<ClassRow | undefined> {
 
 export async function listClassSubjects(classId: string): Promise<ClassSubjectRow[]> {
   return queryAll<ClassSubjectRow>(
-    `SELECT cs.id, cs.classId, cs.subjectId, cs.code, cs.title, cs.teacherId, u.name AS teacherName, cs.createdAt
+    `SELECT cs.id, cs.classId, cs.subjectId, cs.code, cs.title, cs.description, cs.teacherId, u.name AS teacherName, cs.createdAt
      FROM class_subject cs
      LEFT JOIN user u ON u.id = cs.teacherId
      WHERE cs.classId = ?
@@ -156,20 +157,26 @@ export async function createClass(
   const assignedTeacher = (raw: string | null): string | null =>
     raw && validTeacherIds.has(raw) ? raw : null;
 
-  const subjects = await listSubjectsByGrade(gradeLevelId);
-  const curriculumCodes = new Set(subjects.map((s) => s.code));
+  const curriculumSubjects = new Map(
+    (await listSubjectsByGrade(gradeLevelId)).map((s) => [s.id, s])
+  );
+  if (curriculumSubjects.size === 0) {
+    return { error: "No subjects defined for this grade level yet. Add them in Curriculum Setup first." };
+  }
 
-  const otherEntries = Array.from(formData.keys())
-    .filter((k) => k.startsWith("other_code_"))
-    .map((k) => ({
-      key: k.slice("other_code_".length),
-      code: String(formData.get(k) ?? "").trim(),
-    }))
-    .filter((o) => o.code);
-  for (const { code } of otherEntries) {
-    if (curriculumCodes.has(code)) {
-      return { error: `Subject ${code} already exists in ${level.name}.` };
+  const subjectEntries = Array.from(formData.keys())
+    .filter((k) => k.startsWith("subject_"))
+    .map((k) => ({ key: k.slice("subject_".length), subjectId: String(formData.get(k) ?? "") }))
+    .filter((e) => e.subjectId);
+
+  const usedCodes = new Set<string>();
+  for (const { subjectId } of subjectEntries) {
+    const subject = curriculumSubjects.get(subjectId);
+    if (!subject) return { error: "A chosen subject does not belong to this grade level." };
+    if (usedCodes.has(subject.code)) {
+      return { error: `Subject ${subject.code} was added twice.` };
     }
+    usedCodes.add(subject.code);
   }
 
   const classId = randomUUID();
@@ -182,32 +189,18 @@ export async function createClass(
     now
   );
 
-  const usedCodes = new Set(curriculumCodes);
-
-  for (const s of subjects) {
-    const teacherId = assignedTeacher(String(formData.get(`teacher_${s.id}`) ?? "") || null);
+  for (const { key, subjectId } of subjectEntries) {
+    const subject = curriculumSubjects.get(subjectId)!;
+    const description = String(formData.get(`desc_${key}`) ?? "").trim();
+    const teacherId = assignedTeacher(String(formData.get(`teacher_${key}`) ?? "") || null);
     await runSql(
-      "INSERT INTO class_subject (id, classId, subjectId, code, title, teacherId, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       randomUUID(),
       classId,
-      s.id,
-      s.code,
-      s.title,
-      teacherId,
-      now
-    );
-  }
-
-  for (const { key, code } of otherEntries) {
-    usedCodes.add(code);
-    const title = String(formData.get(`other_title_${key}`) ?? "").trim();
-    const teacherId = assignedTeacher(String(formData.get(`other_teacher_${key}`) ?? "") || null);
-    await runSql(
-      "INSERT INTO class_subject (id, classId, subjectId, code, title, teacherId, createdAt) VALUES (?, ?, NULL, ?, ?, ?, ?)",
-      randomUUID(),
-      classId,
-      code,
-      title,
+      subject.id,
+      subject.code,
+      subject.title,
+      description,
       teacherId,
       now
     );
@@ -236,7 +229,7 @@ export async function setSubjectTeacher(formData: FormData): Promise<void> {
   revalidatePath(`/classes/${row.classId}`);
 }
 
-export async function addOtherSubject(
+export async function addClassSubject(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
@@ -244,30 +237,38 @@ export async function addOtherSubject(
   if (!user) return { error: "You are not signed in." };
 
   const classId = String(formData.get("classId") ?? "");
+  const cls = await getClass(classId);
+  if (!cls) return { error: "Class not found." };
   if (!(await canManageClass(user, classId))) {
     return { error: "You can only manage classes you advise." };
   }
 
-  const code = String(formData.get("code") ?? "").trim();
-  const title = String(formData.get("title") ?? "").trim();
-  const teacherId = String(formData.get("teacherId") ?? "") || null;
+  const subjectId = String(formData.get("subjectId") ?? "");
+  const subject = await queryOne<{ id: string; code: string; title: string }>(
+    "SELECT id, code, title FROM subject WHERE id = ? AND gradeLevelId = ?",
+    subjectId,
+    cls.gradeLevelId
+  );
+  if (!subject) return { error: "Choose a subject from this grade level's curriculum." };
 
-  if (!code) return { error: "Subject code is required." };
-  if (!title) return { error: "Subject title is required." };
+  const description = String(formData.get("description") ?? "").trim();
+  const teacherId = String(formData.get("teacherId") ?? "") || null;
 
   const clash = await queryOne<{ id: string }>(
     "SELECT id FROM class_subject WHERE classId = ? AND code = ?",
     classId,
-    code
+    subject.code
   );
-  if (clash) return { error: `Subject ${code} already exists in this class.` };
+  if (clash) return { error: `${subject.code} is already in this class.` };
 
   await runSql(
-    "INSERT INTO class_subject (id, classId, subjectId, code, title, teacherId, createdAt) VALUES (?, ?, NULL, ?, ?, ?, ?)",
+    "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     randomUUID(),
     classId,
-    code,
-    title,
+    subject.id,
+    subject.code,
+    subject.title,
+    description,
     teacherId,
     Date.now()
   );

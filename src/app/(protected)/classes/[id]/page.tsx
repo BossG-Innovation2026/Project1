@@ -6,11 +6,12 @@ import {
   getClass,
   listActiveTeachers,
   listClassSubjects,
+  listSubjectsByGrade,
   removeClassSubject,
   setSubjectTeacher,
 } from "../actions";
 import { RenameClassForm } from "../rename-class-form";
-import { AddOtherSubjectForm } from "../add-other-subject-form";
+import { AddClassSubjectForm } from "../add-class-subject-form";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +23,7 @@ export default async function ClassDetailPage({
   const user = await requireModule("classes");
   const { id } = await params;
 
-  const [cls, subjects, teachers] = await Promise.all([
-    getClass(id),
-    listClassSubjects(id),
-    listActiveTeachers(),
-  ]);
+  const cls = await getClass(id);
   if (!cls) {
     return (
       <div>
@@ -38,7 +35,15 @@ export default async function ClassDetailPage({
     );
   }
 
+  const [subjects, teachers, curriculumSubjects] = await Promise.all([
+    listClassSubjects(id),
+    listActiveTeachers(),
+    listSubjectsByGrade(cls.gradeLevelId),
+  ]);
+
   const canEdit = isAdmin(user) || cls.adviserId === user.id;
+  const inClass = new Set(subjects.map((s) => s.subjectId));
+  const availableSubjects = curriculumSubjects.filter((s) => !inClass.has(s.id));
 
   return (
     <div>
@@ -73,28 +78,33 @@ export default async function ClassDetailPage({
       )}
 
       <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Subjects</h2>
-          <p className="mt-0.5 text-xs text-muted">
-            {canEdit
-              ? "Assign a subject teacher to each subject."
-              : "Class roster with subject teachers."}
-          </p>
-        </div>
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-border bg-panel text-xs uppercase tracking-wide text-muted">
-            <tr>
-              <th className="px-4 py-3">Code</th>
-              <th className="px-4 py-3">Subject</th>
-              <th className="px-4 py-3">Subject teacher</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {subjects.map((s) => (
-              <tr key={s.id}>
-                <td className="px-4 py-3 font-medium text-accent-strong">{s.code}</td>
-                <td className="px-4 py-3 text-foreground">{s.title}</td>
+          <div className="border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Subjects</h2>
+            <p className="mt-0.5 text-xs text-muted">
+              {canEdit
+                ? "Add subjects from the curriculum and assign a teacher to each."
+                : "Class roster with subject teachers."}
+            </p>
+          </div>
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-border bg-panel text-xs uppercase tracking-wide text-muted">
+              <tr>
+                <th className="px-4 py-3">Code</th>
+                <th className="px-4 py-3">Subject</th>
+                <th className="px-4 py-3">Subject teacher</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {subjects.map((s) => (
+                <tr key={s.id}>
+                  <td className="px-4 py-3 font-medium text-accent-strong">{s.code}</td>
+                  <td className="px-4 py-3">
+                    <p className="text-foreground">{s.title}</p>
+                    {s.description && (
+                      <p className="mt-0.5 text-xs text-subtle">{s.description}</p>
+                    )}
+                  </td>
                 <td className="px-4 py-3">
                   {canEdit ? (
                     <form action={setSubjectTeacher} className="flex items-center gap-2">
@@ -118,7 +128,7 @@ export default async function ClassDetailPage({
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {canEdit && s.subjectId === null && (
+                  {canEdit && (
                     <form action={removeClassSubject}>
                       <input type="hidden" name="id" value={s.id} />
                       <button
@@ -145,8 +155,18 @@ export default async function ClassDetailPage({
 
       {canEdit && (
         <div className="mt-6 max-w-3xl rounded-lg border border-border bg-surface p-4">
-          <h2 className="text-sm font-semibold text-foreground">Add other subject</h2>
-          <AddOtherSubjectForm classId={cls.id} teachers={teachers} />
+          <h2 className="text-sm font-semibold text-foreground">Add subject from curriculum</h2>
+          {availableSubjects.length === 0 ? (
+            <p className="mt-2 text-sm text-subtle">
+              All curriculum subjects of {cls.gradeLevelName} are already in this class.
+            </p>
+          ) : (
+            <AddClassSubjectForm
+              classId={cls.id}
+              subjects={availableSubjects}
+              teachers={teachers}
+            />
+          )}
         </div>
       )}
     </div>
