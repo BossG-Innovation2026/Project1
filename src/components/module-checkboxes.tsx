@@ -20,7 +20,7 @@ export function ModuleCheckboxes({
           <label
             key={m.key}
             className={`flex items-start gap-2 rounded-md border p-2 text-sm ${
-              isDisabled ? "border-slate-200 bg-slate-50 text-slate-500" : "border-slate-300 bg-white text-slate-700"
+              isDisabled ? "border-border bg-panel text-subtle" : "border-border bg-surface text-foreground"
             }`}
           >
             <input
@@ -33,7 +33,7 @@ export function ModuleCheckboxes({
             />
             <span>
               {m.label}
-              {isLocked && <span className="ml-1 text-xs text-slate-400">(always on)</span>}
+              {isLocked && <span className="ml-1 text-xs text-muted">(always on)</span>}
             </span>
           </label>
         );

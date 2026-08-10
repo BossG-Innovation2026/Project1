@@ -18,7 +18,7 @@ export function SignOutButton({ className, compact = false }: { className?: stri
       <button
         onClick={handleSignOut}
         title="Sign out"
-        className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-white hover:bg-slate-600"
+        className="flex h-9 w-9 items-center justify-center rounded-md bg-panel-hover text-foreground hover:bg-accent hover:text-on-accent"
       >
         <LogOut size={16} />
       </button>
@@ -28,7 +28,7 @@ export function SignOutButton({ className, compact = false }: { className?: stri
   return (
     <button
       onClick={handleSignOut}
-      className={`rounded-md bg-slate-700 px-3 py-2 text-sm text-white hover:bg-slate-600 ${className ?? ""}`}
+      className={`rounded-md bg-panel-hover px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-on-accent ${className ?? ""}`}
     >
       Sign out
     </button>

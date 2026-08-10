@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState } from "react";
 import { createAccount, type ActionState } from "./actions";
@@ -12,7 +12,7 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
     <form action={action} className="max-w-xl space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="name" className="mb-1 block text-sm font-medium text-foreground">
             Full name
           </label>
           <input
@@ -20,11 +20,11 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
             name="name"
             required
             placeholder="Juan Dela Cruz"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </div>
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="email" className="mb-1 block text-sm font-medium text-foreground">
             Email
           </label>
           <input
@@ -33,20 +33,20 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
             type="email"
             required
             placeholder="name@school.local"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="role" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="role" className="mb-1 block text-sm font-medium text-foreground">
             Role
           </label>
           <select
             id="role"
             name="role"
             defaultValue={roleOptions[0]}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
           >
             {roleOptions.map((r) => (
               <option key={r} value={r}>
@@ -56,7 +56,7 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
           </select>
         </div>
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="password" className="mb-1 block text-sm font-medium text-foreground">
             Temporary password
           </label>
           <input
@@ -66,23 +66,23 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
             required
             minLength={8}
             placeholder="At least 8 characters"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+            className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </div>
       </div>
       <div>
-        <p className="mb-2 text-sm font-medium text-slate-700">Modules this account can access</p>
+        <p className="mb-2 text-sm font-medium text-foreground">Modules this account can access</p>
         <ModuleCheckboxes value={[]} />
       </div>
       {state.error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-md bg-accent-soft px-3 py-2 text-sm text-foreground">{state.error}</p>
       )}
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:opacity-50"
       >
-        {pending ? "Creating…" : "Create account"}
+        {pending ? "Creatingâ€¦" : "Create account"}
       </button>
     </form>
   );

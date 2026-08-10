@@ -13,22 +13,22 @@ export default async function AccountsPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Account Management</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-foreground">Account Management</h1>
+          <p className="mt-1 text-sm text-muted">
             Accounts show only the modules ticked at registration.
           </p>
         </div>
         <Link
           href="/accounts/new"
-          className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong"
         >
           Register account
         </Link>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="border-b border-border bg-panel text-xs uppercase tracking-wide text-muted">
             <tr>
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
@@ -38,33 +38,33 @@ export default async function AccountsPage() {
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {accounts.map((a) => {
               const perms = JSON.parse(a.permissions || "[]") as string[];
               return (
-                <tr key={a.id} className={a.active ? "" : "bg-slate-50 text-slate-400"}>
-                  <td className="px-4 py-3 font-medium text-slate-800">{a.name}</td>
-                  <td className="px-4 py-3">{a.email}</td>
+                <tr key={a.id} className={a.active ? "" : "bg-panel text-subtle"}>
+                  <td className="px-4 py-3 font-medium text-foreground">{a.name}</td>
+                  <td className="px-4 py-3 text-foreground">{a.email}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                    <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-strong">
                       {ROLE_LABELS[a.role] ?? a.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">{perms.length} modules</td>
+                  <td className="px-4 py-3 text-xs text-muted">{perms.length} modules</td>
                   <td className="px-4 py-3">
                     {a.active ? (
-                      <span className="text-xs font-medium text-emerald-600">Active</span>
+                      <span className="text-xs font-medium text-accent-strong">Active</span>
                     ) : (
-                      <span className="text-xs font-medium text-red-600">Deactivated</span>
+                      <span className="text-xs font-medium text-subtle">Deactivated</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {a.id === user.id ? (
-                      <Link href={`/accounts/${a.id}`} className="text-sky-600 hover:underline">
+                      <Link href={`/accounts/${a.id}`} className="text-accent-strong hover:underline">
                         Your account
                       </Link>
                     ) : (
-                      <Link href={`/accounts/${a.id}`} className="text-sky-600 hover:underline">
+                      <Link href={`/accounts/${a.id}`} className="text-accent-strong hover:underline">
                         Manage
                       </Link>
                     )}
@@ -74,7 +74,7 @@ export default async function AccountsPage() {
             })}
             {accounts.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-subtle">
                   No accounts yet.
                 </td>
               </tr>

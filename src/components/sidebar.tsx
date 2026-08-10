@@ -54,29 +54,29 @@ export function Sidebar({
   }
 
   const navItem =
-    "mb-0.5 flex items-center gap-3 rounded-md px-3 py-2 text-sm text-sky-100 hover:bg-slate-700";
+    "mb-0.5 flex items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-panel-hover";
 
   return (
     <aside
-      className={`relative flex flex-col bg-slate-800 text-white transition-all ${
+      className={`relative flex flex-col bg-panel text-foreground transition-all ${
         collapsed ? "w-14" : "w-60"
       }`}
     >
       <button
         onClick={toggle}
         title={collapsed ? "Expand panel" : "Collapse panel"}
-        className="absolute right-0 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-600 bg-slate-700 text-slate-300 shadow hover:bg-slate-600 hover:text-white"
+        className="absolute right-0 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-border bg-panel-hover text-muted shadow hover:text-foreground"
       >
         {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
-      <div className="flex items-center justify-center border-b border-slate-700 px-4 py-3">
+      <div className="flex items-center justify-center border-b border-border px-4 py-3">
         {!collapsed ? (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">School Portal</p>
-            <p className="truncate text-xs text-sky-300">{roleLabel}</p>
+            <p className="truncate text-xs text-accent">{roleLabel}</p>
           </div>
         ) : (
-          <GraduationCap size={20} className="shrink-0 text-sky-400" />
+          <GraduationCap size={20} className="shrink-0 text-accent" />
         )}
       </div>
       <nav className="flex-1 overflow-y-auto p-3">
@@ -85,13 +85,13 @@ export function Sidebar({
           title="Dashboard"
           className={`${navItem} ${
             collapsed ? "justify-center px-2" : ""
-          } mb-0.5 block bg-sky-500 font-medium text-white hover:bg-sky-600`}
+          } mb-0.5 block bg-accent font-medium text-on-accent hover:bg-accent-strong`}
         >
           <LayoutDashboard size={18} className="shrink-0" />
           {!collapsed && "Dashboard"}
         </Link>
         {links.length === 0 && !collapsed && (
-          <p className="px-3 py-2 text-xs text-slate-400">
+          <p className="px-3 py-2 text-xs text-subtle">
             No modules assigned yet. Contact an admin.
           </p>
         )}
@@ -102,13 +102,13 @@ export function Sidebar({
               <div
                 key={item.href}
                 title={collapsed ? item.label : undefined}
-                className={`${navItem} cursor-default text-slate-400 ${collapsed ? "justify-center px-2" : ""}`}
+                className={`${navItem} cursor-default text-subtle ${collapsed ? "justify-center px-2" : ""}`}
               >
                 {Icon && <Icon size={18} className="shrink-0" />}
                 {!collapsed && (
                   <>
                     <span className="flex-1 truncate">{item.label}</span>
-                    <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
+                    <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent-strong">
                       Soon
                     </span>
                   </>
@@ -129,12 +129,12 @@ export function Sidebar({
           );
         })}
       </nav>
-      <div className="border-t border-slate-700 p-3">
+      <div className="border-t border-border p-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
             <span
               title={userName}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-sky-400 text-sm font-bold text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-sm font-bold text-on-accent"
             >
               {userName.charAt(0)}
             </span>
@@ -142,12 +142,12 @@ export function Sidebar({
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-400 text-sm font-bold text-white">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-on-accent">
               {userName.charAt(0)}
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{userName}</p>
-              <p className="truncate text-xs text-sky-300">{userEmail}</p>
+              <p className="truncate text-xs text-muted">{userEmail}</p>
             </div>
           </div>
         )}

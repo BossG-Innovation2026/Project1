@@ -16,8 +16,8 @@ export default async function AccountDetailPage({
   if (!account) {
     return (
       <div>
-        <p className="text-sm text-slate-500">Account not found.</p>
-        <Link href="/accounts" className="mt-2 inline-block text-sm text-sky-600 hover:underline">
+        <p className="text-sm text-muted">Account not found.</p>
+        <Link href="/accounts" className="mt-2 inline-block text-sm text-accent-strong hover:underline">
           ← Back to accounts
         </Link>
       </div>
@@ -32,22 +32,22 @@ export default async function AccountDetailPage({
 
   return (
     <div className="max-w-2xl">
-      <Link href="/accounts" className="text-sm text-sky-600 hover:underline">
+      <Link href="/accounts" className="text-sm text-accent-strong hover:underline">
         ← Back to accounts
       </Link>
       <div className="mt-2 flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-400 text-lg font-bold text-white">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-lg font-bold text-on-accent">
           {account.name.charAt(0)}
         </span>
         <div>
-          <h1 className="text-xl font-bold text-slate-800">{account.name}</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl font-bold text-foreground">{account.name}</h1>
+          <p className="text-sm text-muted">
             {account.email} ·{" "}
-            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-strong">
               {ROLE_LABELS[account.role] ?? account.role}
             </span>{" "}
             {!account.active && (
-              <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+              <span className="rounded-full bg-panel px-2 py-0.5 text-xs font-medium text-muted">
                 Deactivated
               </span>
             )}
@@ -56,7 +56,7 @@ export default async function AccountDetailPage({
       </div>
 
       {editingSelf && (
-        <p className="mt-4 rounded-md bg-sky-50 px-3 py-2 text-sm text-sky-700">
+        <p className="mt-4 rounded-md bg-accent-soft px-3 py-2 text-sm text-foreground">
           This is your own account. You can add or remove modules (except Account Management),
           change your password, and update your status.
         </p>

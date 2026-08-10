@@ -26,9 +26,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         links={links}
       />
       <main className="min-w-0 flex-1">
-        <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
-          <p className="text-sm text-slate-600">School Portal</p>
-          <p className="text-sm text-slate-400">Signed in as {user.email}</p>
+        <header className="flex h-14 items-center justify-between border-b border-border bg-surface px-6">
+          <p className="text-sm font-medium text-foreground">School Portal</p>
+          <p className="text-sm text-muted">Signed in as {user.email}</p>
         </header>
         <div className="p-6">{children}</div>
       </main>

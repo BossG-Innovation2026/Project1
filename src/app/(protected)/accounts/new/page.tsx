@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { requireAdmin, rolesCreatableBy } from "@/lib/access";
 import { CreateAccountForm } from "../create-account-form";
 
@@ -10,11 +10,11 @@ export default async function NewAccountPage() {
 
   return (
     <div className="max-w-2xl">
-      <Link href="/accounts" className="text-sm text-sky-600 hover:underline">
-        ← Back to accounts
+      <Link href="/accounts" className="text-sm text-accent-strong hover:underline">
+        â† Back to accounts
       </Link>
-      <h1 className="mt-2 text-xl font-bold text-slate-800">Register account</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="mt-2 text-xl font-bold text-foreground">Register account</h1>
+      <p className="mt-1 text-sm text-muted">
         Tick the modules this account can access. Admin accounts always keep Account Management.
       </p>
       <div className="mt-6">

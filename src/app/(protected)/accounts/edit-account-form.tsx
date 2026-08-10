@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState } from "react";
 import {
@@ -18,7 +18,7 @@ function Notice({ state }: { state: ActionState }) {
   return (
     <p
       className={`rounded-md px-3 py-2 text-sm ${
-        state.error ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
+        state.error ? "bg-accent-soft text-foreground" : "bg-accent text-on-accent"
       }`}
     >
       {state.error ?? "Saved."}
@@ -51,9 +51,9 @@ export function EditAccountForm({
   return (
     <div className="space-y-8">
       <section className="max-w-xl">
-        <h2 className="text-sm font-semibold text-slate-800">Modules</h2>
+        <h2 className="text-sm font-semibold text-foreground">Modules</h2>
         {!canEdit && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-muted">
             Only the super admin can manage this account.
           </p>
         )}
@@ -64,19 +64,19 @@ export function EditAccountForm({
             <button
               type="submit"
               disabled={permPending}
-              className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:opacity-50"
             >
-              {permPending ? "Saving…" : "Save modules"}
+              {permPending ? "Savingâ€¦" : "Save modules"}
             </button>
           )}
         </form>
       </section>
 
       <section className="max-w-xl">
-        <h2 className="text-sm font-semibold text-slate-800">Reset password</h2>
+        <h2 className="text-sm font-semibold text-foreground">Reset password</h2>
         <form action={pwAction} className="mt-3 flex items-end gap-3">
           <div className="flex-1">
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-foreground">
               New password
             </label>
             <input
@@ -87,16 +87,16 @@ export function EditAccountForm({
               minLength={8}
               disabled={!canEdit}
               placeholder="At least 8 characters"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none disabled:bg-slate-50"
+              className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none disabled:bg-panel"
             />
           </div>
           {canEdit && (
             <button
               type="submit"
               disabled={pwPending}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-panel-hover disabled:opacity-50"
             >
-              {pwPending ? "Saving…" : "Reset password"}
+              {pwPending ? "Savingâ€¦" : "Reset password"}
             </button>
           )}
         </form>
@@ -106,23 +106,23 @@ export function EditAccountForm({
       </section>
 
       <section className="max-w-xl">
-        <h2 className="text-sm font-semibold text-slate-800">Account status</h2>
+        <h2 className="text-sm font-semibold text-foreground">Account status</h2>
         <form action={activeAction} className="mt-3">
           <input type="hidden" name="active" value={account.active ? 0 : 1} />
           {canEdit && !editingSelf && account.role !== "super_admin" ? (
             <button
               type="submit"
               disabled={activePending}
-              className={`rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50 ${
-                account.active ? "bg-red-600 hover:bg-red-700" : "bg-emerald-600 hover:bg-emerald-700"
+              className={`rounded-md px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50 ${
+                account.active ? "bg-panel-hover hover:bg-accent" : "bg-accent hover:bg-accent-strong"
               }`}
             >
-              {activePending ? "Saving…" : account.active ? "Deactivate account" : "Activate account"}
+              {activePending ? "Savingâ€¦" : account.active ? "Deactivate account" : "Activate account"}
             </button>
           ) : (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               {account.active ? "Active" : "Deactivated"}
-              {editingSelf && " — you cannot deactivate your own account."}
+              {editingSelf && " â€” you cannot deactivate your own account."}
             </p>
           )}
           <div className="mt-2">
