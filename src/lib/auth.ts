@@ -39,6 +39,9 @@ function createAuth() {
     rateLimit: {
       window: 60,
       max: 300,
+      customRules: {
+        "/sign-in": { window: 10, max: 20 },
+      },
     },
   });
 }
