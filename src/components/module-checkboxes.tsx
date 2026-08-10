@@ -20,7 +20,7 @@ export function ModuleCheckboxes({
           <label
             key={m.key}
             className={`flex items-start gap-2 rounded-md border p-2 text-sm ${
-              isDisabled ? "border-slate-200 bg-slate-50 text-slate-400" : "border-slate-300 bg-white"
+              isDisabled ? "border-slate-200 bg-slate-50 text-slate-500" : "border-slate-300 bg-white text-slate-700"
             }`}
           >
             <input
