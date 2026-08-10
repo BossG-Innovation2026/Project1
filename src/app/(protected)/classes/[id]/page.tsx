@@ -3,7 +3,6 @@ import { requireModule } from "@/lib/access";
 import { isAdmin } from "@/lib/access";
 import { TERMS, type Term } from "@/lib/terms";
 import {
-  countClassSubjects,
   deleteClass,
   getClass,
   listActiveTeachers,
@@ -45,18 +44,16 @@ export default async function ClassDetailPage({
   }
 
   const term = TERMS.includes(Number(termParam) as Term) ? (Number(termParam) as Term) : 1;
-  const [subjects, teachers, students, curriculumSubjects, subjectCount] = await Promise.all([
+  const [subjects, teachers, students, curriculumSubjects] = await Promise.all([
     listClassSubjects(id, term),
     listActiveTeachers(),
     listStudents(id),
     listSubjectsByGrade(cls.gradeLevelId),
-    countClassSubjects(id),
   ]);
 
   const canEdit = isAdmin(user) || cls.adviserId === user.id;
   const inClass = new Set(subjects.map((s) => s.subjectId));
   const availableSubjects = curriculumSubjects.filter((s) => !inClass.has(s.id));
-  const hasSubjects = subjectCount > 0;
 
   return (
     <div>
@@ -210,22 +207,14 @@ export default async function ClassDetailPage({
                 enroll them in bulk — or add them one by one.
               </p>
             </div>
-            {canEdit &&
-              (hasSubjects ? (
-                <a
-                  href={`/classes/${cls.id}/template.csv`}
-                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong"
-                >
-                  Download template
-                </a>
-              ) : (
-                <span
-                  className="rounded-md border border-border px-3 py-2 text-xs text-subtle"
-                  title="Set up at least one subject first"
-                >
-                  Template available after subject setup
-                </span>
-              ))}
+            {canEdit && (
+              <a
+                href={`/classes/${cls.id}/template.csv`}
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong"
+              >
+                Download template
+              </a>
+            )}
           </div>
         </div>
         {canEdit && (
