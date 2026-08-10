@@ -1,8 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+
+function RegisteredNote() {
+  const params = useSearchParams();
+  if (params.get("registered") !== "1") return null;
+  return (
+    <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+      Account created. You can now sign in.
+    </p>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,6 +47,9 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-slate-500">Sign in to your account</p>
         </div>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <Suspense fallback={null}>
+            <RegisteredNote />
+          </Suspense>
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-700">
               Email
@@ -71,12 +85,11 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Demo accounts (all use Password123!):
-          <br />
-          admin@school.local (Super Admin) · admin2@school.local (Admin)
-          <br />
-          teacher@school.local · registrar@school.local · coordinator@school.local
+        <p className="mt-6 text-center text-sm text-slate-500">
+          No account yet?{" "}
+          <Link href="/register" className="font-medium text-sky-600 hover:underline">
+            Register
+          </Link>
         </p>
       </div>
     </main>

@@ -40,6 +40,26 @@ async function check(name, cond, extra = "") {
   const browser = await chromium.launch();
   const page = await browser.newPage();
 
+  // --- 0. First-ever registration becomes super admin; create an admin account
+  const SUPER_EMAIL = `e2e-super-${Date.now()}@school.local`;
+  await page.goto(`${BASE}/register`);
+  await page.locator("#name").fill("E2E Super Admin");
+  await page.locator("#email").fill(SUPER_EMAIL);
+  await page.locator("#password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Register" }).click();
+  await page.waitForURL("**/login*");
+  await check("first registration becomes super admin", page.url().includes("/login"));
+  await signIn(page, SUPER_EMAIL);
+  await check("super admin lands on dashboard", page.url().includes("/dashboard"));
+  await page.goto(`${BASE}/accounts/new`);
+  await page.locator("#name").fill("Admin User");
+  await page.locator("#email").fill("admin2@school.local");
+  await page.locator("#password").fill(PASSWORD);
+  await page.locator("#role").selectOption("admin");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await page.waitForURL("**/accounts");
+  await signOut(page);
+
   // --- 1. Admin creates a teacher account with selected modules
   await signIn(page, "admin2@school.local");
   await page.goto(`${BASE}/accounts/new`);
@@ -143,8 +163,8 @@ async function check(name, cond, extra = "") {
   }
   await check("deactivated user cannot get past login", page.url().includes("/login"));
 
-  // --- 8. Super admin sees everything and can create admin accounts
-  await signIn(page, "admin@school.local");
+// --- 8. Super admin sees everything and can create admin accounts
+  await signIn(page, SUPER_EMAIL);
   const superNav = await page.locator("nav").innerText();
   await check("super admin nav shows all modules", superNav.includes("Account Management"));
   await page.goto(`${BASE}/accounts/new`);
