@@ -72,7 +72,7 @@ export function CreateAccountForm({ roleOptions }: { roleOptions: string[] }) {
       </div>
       <div>
         <p className="mb-2 text-sm font-medium text-slate-700">Modules this account can access</p>
-        <ModuleCheckboxes value={["dashboard"]} />
+        <ModuleCheckboxes value={[]} />
       </div>
       {state.error && (
         <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>

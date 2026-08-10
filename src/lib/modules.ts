@@ -15,7 +15,6 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const MODULES = [
-  { key: "dashboard", label: "Dashboard & Notifications" },
   { key: "accounts", label: "Account Management" },
   { key: "curriculum", label: "Curriculum Setup (Grade Levels, Tracks, Subjects)" },
   { key: "classes", label: "Class Creation" },
@@ -33,7 +32,6 @@ export const NAV_LINKS: {
   label: string;
   implemented: boolean;
 }[] = [
-  { module: "dashboard", href: "/dashboard", label: "Dashboard", implemented: true },
   { module: "accounts", href: "/accounts", label: "Account Management", implemented: true },
   { module: "curriculum", href: "/curriculum", label: "Curriculum Setup", implemented: false },
   { module: "classes", href: "/classes", label: "Class Creation", implemented: false },

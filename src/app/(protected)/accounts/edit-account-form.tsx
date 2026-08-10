@@ -9,7 +9,9 @@ import {
   type AccountRow,
 } from "./actions";
 import { ModuleCheckboxes } from "@/components/module-checkboxes";
-import { parsePermissions } from "@/lib/modules";
+import { parsePermissions, MODULES } from "@/lib/modules";
+
+const MODULE_KEYS = MODULES.map((m) => m.key);
 
 function Notice({ state }: { state: ActionState }) {
   if (!state.error && !state.ok) return null;
@@ -44,7 +46,7 @@ export function EditAccountForm({
   );
 
   const locked = editingSelf ? ["accounts"] : [];
-  const disabled = !canEdit ? ["dashboard", "accounts", "curriculum", "classes", "grades_submit", "grades_approve", "registrar", "codes"] : [];
+  const disabled = !canEdit ? MODULE_KEYS : [];
 
   return (
     <div className="space-y-8">
