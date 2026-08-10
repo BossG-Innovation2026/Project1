@@ -7,16 +7,22 @@ const TEACHER_EMAIL = `m1teacher-${Date.now()}@school.local`;
 const results = [];
 
 async function signIn(page, email, password = PASSWORD) {
-  await page.goto(`${BASE}/login`);
-  await page.locator("#email").fill(email);
-  await page.locator("#password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  try {
-    await page.waitForURL("**/dashboard", { timeout: 8000 });
-  } catch {
-    console.log(`signIn(${email}) landed on: ${page.url()}`);
-    const err = page.locator("text=Sign in failed").first();
-    if (await err.isVisible().catch(() => false)) console.log(`  error text: ${await err.innerText()}`);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    await page.goto(`${BASE}/login`);
+    await page.locator("#email").fill(email);
+    await page.locator("#password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    try {
+      await page.waitForURL("**/dashboard", { timeout: 30000 });
+      return;
+    } catch (e) {
+      await page.waitForTimeout(1000);
+      const err = page.locator("text=Sign in failed").first();
+      const msg = (await err.isVisible().catch(() => false)) ? await err.innerText() : "";
+      console.log(`signIn(${email}) attempt ${attempt} landed on: ${page.url()} (${msg})`);
+      if (attempt === 2) throw e;
+      await page.waitForTimeout(3000);
+    }
   }
 }
 
