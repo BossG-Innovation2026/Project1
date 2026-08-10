@@ -174,29 +174,6 @@ export async function createClass(
     };
   }
 
-  const validTeacherIds = new Set((await listActiveTeachers()).map((t) => t.id));
-  const assignedTeacher = (raw: string | null): string | null =>
-    raw && validTeacherIds.has(raw) ? raw : null;
-
-  const curriculumSubjects = new Map(
-    (await listSubjectsByGrade(gradeLevelId)).map((s) => [s.id, s])
-  );
-
-  const subjectEntries = Array.from(formData.keys())
-    .filter((k) => k.startsWith("subject_"))
-    .map((k) => ({ key: k.slice("subject_".length), subjectId: String(formData.get(k) ?? "") }))
-    .filter((e) => e.subjectId);
-
-  const usedCodes = new Set<string>();
-  for (const { subjectId } of subjectEntries) {
-    const subject = curriculumSubjects.get(subjectId);
-    if (!subject) return { error: "A chosen subject does not belong to this grade level." };
-    if (usedCodes.has(subject.code)) {
-      return { error: `Subject ${subject.code} was added twice in Term 1.` };
-    }
-    usedCodes.add(subject.code);
-  }
-
   const now = Date.now();
   const classId = randomUUID();
   await runSql(
@@ -207,23 +184,6 @@ export async function createClass(
     user.id,
     now
   );
-
-  for (const { key, subjectId } of subjectEntries) {
-    const subject = curriculumSubjects.get(subjectId)!;
-    const description = String(formData.get(`desc_${key}`) ?? "").trim();
-    const teacherId = assignedTeacher(String(formData.get(`teacher_${key}`) ?? "") || null);
-    await runSql(
-      "INSERT INTO class_subject (id, classId, subjectId, code, title, description, teacherId, term, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)",
-      randomUUID(),
-      classId,
-      subject.id,
-      subject.code,
-      subject.title,
-      description,
-      teacherId,
-      now
-    );
-  }
 
   revalidatePath("/classes");
   redirect(`/classes/${classId}`);
