@@ -88,7 +88,7 @@ export function Sidebar({
       <div className="flex items-center justify-center border-b border-border px-4 py-3">
         {!collapsed ? (
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">School Portal</p>
+            <p className="truncate text-sm font-semibold">Project Grado</p>
             <p className="truncate text-xs text-accent">{roleLabel}</p>
           </div>
         ) : (

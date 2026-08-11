@@ -28,7 +28,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       />
       <main className="min-w-0 flex-1">
         <header className="flex h-14 items-center justify-between border-b border-border bg-surface px-6">
-          <p className="text-sm font-medium text-foreground">School Portal</p>
+          <p className="text-sm font-medium text-foreground">Project Grado</p>
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <p className="text-sm text-muted">Signed in as {user.email}</p>

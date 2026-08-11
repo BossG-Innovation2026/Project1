@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "School Portal",
-  description: "School grade level, track, and subject management",
+  title: "Project Grado",
+  description: "Project Grado — grade level, track, and subject management",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

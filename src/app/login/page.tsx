@@ -41,9 +41,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm rounded-xl border border-border bg-surface p-8 shadow-xl">
         <div className="text-center">
           <span className="inline-block rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent-strong">
-            School
+            Project Grado
           </span>
-          <h1 className="mt-3 text-xl font-bold text-foreground">School Portal</h1>
+          <h1 className="mt-3 text-xl font-bold text-foreground">Project Grado</h1>
           <p className="mt-1 text-sm text-muted">Sign in to your account</p>
         </div>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
