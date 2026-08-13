@@ -10,13 +10,13 @@ import {
   listStudents,
   listSubjectsByGrade,
   removeClassSubject,
-  setSubjectTeacher,
   unenrollStudent,
 } from "../actions";
 import { RenameClassForm } from "../rename-class-form";
 import { AddClassSubjectForm } from "../add-class-subject-form";
 import { EnrollStudentForm } from "../enroll-student-form";
 import { UploadStudentsForm } from "../upload-students-form";
+import { SubjectTeacherSelect } from "../subject-teacher-select";
 
 export const dynamic = "force-dynamic";
 
@@ -134,22 +134,11 @@ export default async function ClassDetailPage({
                 </td>
                 <td className="px-4 py-3">
                   {canEdit ? (
-                    <form action={setSubjectTeacher} className="flex items-center gap-2">
-                      <input type="hidden" name="classSubjectId" value={s.id} />
-                      <select
-                        name="teacherId"
-                        defaultValue={s.teacherId ?? ""}
-                        onChange={(e) => e.target.form?.requestSubmit()}
-                        className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-foreground focus:border-accent focus:outline-none"
-                      >
-                        <option value="">— unassigned —</option>
-                        {teachers.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
-                    </form>
+                    <SubjectTeacherSelect
+                      classSubjectId={s.id}
+                      teacherId={s.teacherId}
+                      teachers={teachers}
+                    />
                   ) : (
                     <span className="text-sm text-foreground">{s.teacherName ?? "—"}</span>
                   )}
