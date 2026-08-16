@@ -1,6 +1,8 @@
 "use client";
 
-import { setSubjectTeacher } from "./actions";
+import { useActionState } from "react";
+import { setSubjectTeacher, type ActionState } from "./actions";
+import { PasswordConfirmForm } from "./password-confirm-form";
 
 export function SubjectTeacherSelect({
   classSubjectId,
@@ -11,12 +13,16 @@ export function SubjectTeacherSelect({
   teacherId: string | null;
   teachers: { id: string; name: string }[];
 }) {
+  const [state, action, pending] = useActionState<ActionState, FormData>(setSubjectTeacher, {});
+
   return (
-    <form action={setSubjectTeacher} className="flex items-center gap-2">
+    <PasswordConfirmForm action={action} className="flex flex-col items-start gap-1">
       <input type="hidden" name="classSubjectId" value={classSubjectId} />
       <select
+        key={teacherId ?? "none"}
         name="teacherId"
         defaultValue={teacherId ?? ""}
+        disabled={pending}
         onChange={(e) => e.target.form?.requestSubmit()}
         className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-foreground focus:border-accent focus:outline-none"
       >
@@ -27,6 +33,9 @@ export function SubjectTeacherSelect({
           </option>
         ))}
       </select>
-    </form>
+      {state.error && (
+        <p className="text-xs text-muted">{state.error}</p>
+      )}
+    </PasswordConfirmForm>
   );
 }

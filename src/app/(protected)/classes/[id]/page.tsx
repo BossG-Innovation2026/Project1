@@ -3,20 +3,20 @@ import { requireModule } from "@/lib/access";
 import { isAdmin } from "@/lib/access";
 import { TERMS, type Term } from "@/lib/terms";
 import {
-  deleteClass,
   getClass,
   listActiveTeachers,
   listClassSubjects,
   listStudents,
   listSubjectsByGrade,
-  removeClassSubject,
-  unenrollStudent,
 } from "../actions";
 import { RenameClassForm } from "../rename-class-form";
 import { AddClassSubjectForm } from "../add-class-subject-form";
 import { EnrollStudentForm } from "../enroll-student-form";
 import { UploadStudentsForm } from "../upload-students-form";
 import { SubjectTeacherSelect } from "../subject-teacher-select";
+import { RemoveClassSubjectButton } from "../remove-class-subject-button";
+import { UnenrollStudentButton } from "../unenroll-student-button";
+import { DeleteClassDialog } from "../delete-class-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -67,17 +67,7 @@ export default async function ClassDetailPage({
             {cls.gradeLevelName} · Adviser: <span className="text-foreground">{cls.adviserName}</span>
           </p>
         </div>
-        {canEdit && (
-          <form action={deleteClass}>
-            <input type="hidden" name="id" value={cls.id} />
-            <button
-              type="submit"
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-muted hover:bg-panel-hover hover:text-foreground"
-            >
-              Delete class
-            </button>
-          </form>
-        )}
+        {canEdit && <DeleteClassDialog classId={cls.id} className={cls.name} />}
       </div>
 
       {canEdit && (
@@ -144,17 +134,7 @@ export default async function ClassDetailPage({
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  {canEdit && (
-                    <form action={removeClassSubject}>
-                      <input type="hidden" name="id" value={s.id} />
-                      <button
-                        type="submit"
-                        className="text-sm text-muted hover:text-foreground hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </form>
-                  )}
+                  {canEdit && <RemoveClassSubjectButton id={s.id} />}
                 </td>
               </tr>
             ))}
@@ -233,16 +213,7 @@ export default async function ClassDetailPage({
                 <td className="px-4 py-3 text-xs text-muted">{s.sex}</td>
                 <td className="px-4 py-3 text-right">
                   {canEdit && (
-                    <form action={unenrollStudent}>
-                      <input type="hidden" name="classId" value={cls.id} />
-                      <input type="hidden" name="studentId" value={s.id} />
-                      <button
-                        type="submit"
-                        className="text-sm text-muted hover:text-foreground hover:underline"
-                      >
-                        Unenroll
-                      </button>
-                    </form>
+                    <UnenrollStudentButton classId={cls.id} studentId={s.id} />
                   )}
                 </td>
               </tr>

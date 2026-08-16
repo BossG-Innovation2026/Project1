@@ -2,12 +2,13 @@
 
 import { useActionState } from "react";
 import { enrollFromTemplate, type ActionState } from "./actions";
+import { PasswordConfirmForm } from "./password-confirm-form";
 
 export function UploadStudentsForm({ classId }: { classId: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(enrollFromTemplate, {});
 
   return (
-    <form action={action} className="space-y-2">
+    <PasswordConfirmForm action={action} className="space-y-2">
       <h3 className="text-sm font-semibold text-foreground">Upload template</h3>
       <p className="text-xs text-muted">
         Fill the downloaded template with students and upload the CSV here. Students are matched by
@@ -36,6 +37,6 @@ export function UploadStudentsForm({ classId }: { classId: string }) {
       {state.error && (
         <p className="rounded-md bg-accent-soft px-3 py-2 text-sm text-foreground">{state.error}</p>
       )}
-    </form>
+    </PasswordConfirmForm>
   );
 }

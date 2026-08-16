@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { addClassSubject, type ActionState } from "./actions";
+import { PasswordConfirmForm } from "./password-confirm-form";
 
 export function AddClassSubjectForm({
   classId,
@@ -17,7 +18,7 @@ export function AddClassSubjectForm({
   const [state, action, pending] = useActionState<ActionState, FormData>(addClassSubject, {});
 
   return (
-    <form action={action} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4 sm:items-end">
+    <PasswordConfirmForm action={action} className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4 sm:items-end">
       <input type="hidden" name="classId" value={classId} />
       <input type="hidden" name="term" value={term} />
       <label className="sm:col-span-1">
@@ -73,6 +74,6 @@ export function AddClassSubjectForm({
           {state.error}
         </p>
       )}
-    </form>
+    </PasswordConfirmForm>
   );
 }

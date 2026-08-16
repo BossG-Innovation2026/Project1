@@ -52,3 +52,4 @@ next-env.d.ts
 .pw-profile/
 *.log
 *.tmp.js
+repro.pid

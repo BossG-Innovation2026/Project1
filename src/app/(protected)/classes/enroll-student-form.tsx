@@ -2,12 +2,13 @@
 
 import { useActionState } from "react";
 import { enrollStudent, type ActionState } from "./actions";
+import { PasswordConfirmForm } from "./password-confirm-form";
 
 export function EnrollStudentForm({ classId }: { classId: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(enrollStudent, {});
 
   return (
-    <form action={action} className="space-y-2">
+    <PasswordConfirmForm action={action} className="space-y-2">
       <h3 className="text-sm font-semibold text-foreground">Enroll individually</h3>
       <p className="text-xs text-muted">
         Add one student at a time. If the LRN already exists, the student is enrolled as-is.
@@ -71,6 +72,6 @@ export function EnrollStudentForm({ classId }: { classId: string }) {
       {state.error && (
         <p className="rounded-md bg-accent-soft px-3 py-2 text-sm text-foreground">{state.error}</p>
       )}
-    </form>
+    </PasswordConfirmForm>
   );
 }

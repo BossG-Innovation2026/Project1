@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { verifyPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { queryAll, queryOne, runSql } from "@/lib/db";
@@ -56,6 +57,21 @@ async function canManageClass(user: NonNullable<Awaited<ReturnType<typeof curren
   if (isAdmin(user)) return true;
   const cls = await getClass(classId);
   return cls?.adviserId === user.id;
+}
+
+async function checkAuthPassword(
+  user: NonNullable<Awaited<ReturnType<typeof currentUser>>>,
+  password: string
+): Promise<string | null> {
+  if (!password) return "Enter your password to continue.";
+  const row = await queryOne<{ password: string | null }>(
+    "SELECT password FROM account WHERE userId = ? AND providerId = 'credential'",
+    user.id
+  );
+  if (!row?.password) return "Account not found.";
+  const ok = await verifyPassword({ hash: row.password, password });
+  if (!ok) return "Incorrect password.";
+  return null;
 }
 
 export async function listClasses(): Promise<ClassRow[]> {
@@ -189,9 +205,12 @@ export async function createClass(
   redirect(`/classes/${classId}`);
 }
 
-export async function setSubjectTeacher(formData: FormData): Promise<void> {
+export async function setSubjectTeacher(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
   const user = await currentUser();
-  if (!user) return;
+  if (!user) return { error: "You are not signed in." };
 
   const classSubjectId = String(formData.get("classSubjectId") ?? "");
   const teacherId = String(formData.get("teacherId") ?? "") || null;
@@ -200,11 +219,17 @@ export async function setSubjectTeacher(formData: FormData): Promise<void> {
     "SELECT classId FROM class_subject WHERE id = ?",
     classSubjectId
   );
-  if (!row) return;
-  if (!(await canManageClass(user, row.classId))) return;
+  if (!row) return { error: "Subject not found." };
+  if (!(await canManageClass(user, row.classId))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   await runSql("UPDATE class_subject SET teacherId = ? WHERE id = ?", teacherId, classSubjectId);
   revalidatePath(`/classes/${row.classId}`);
+  return { ok: true };
 }
 
 export async function addClassSubject(
@@ -220,6 +245,9 @@ export async function addClassSubject(
   if (!(await canManageClass(user, classId))) {
     return { error: "You can only manage classes you advise." };
   }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   const term = Number(formData.get("term") ?? 1);
   if (!TERMS.includes(term as Term)) return { error: "Invalid term." };
@@ -260,28 +288,46 @@ export async function addClassSubject(
   return { ok: true };
 }
 
-export async function removeClassSubject(formData: FormData): Promise<void> {
+export async function removeClassSubject(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
   const user = await currentUser();
-  if (!user) return;
+  if (!user) return { error: "You are not signed in." };
 
   const id = String(formData.get("id") ?? "");
   const row = await queryOne<{ classId: string }>("SELECT classId FROM class_subject WHERE id = ?", id);
-  if (!row) return;
-  if (!(await canManageClass(user, row.classId))) return;
+  if (!row) return { error: "Subject not found." };
+  if (!(await canManageClass(user, row.classId))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   await runSql("DELETE FROM class_subject WHERE id = ?", id);
   revalidatePath(`/classes/${row.classId}`);
+  return { ok: true };
 }
 
-export async function deleteClass(formData: FormData): Promise<void> {
+export async function deleteClass(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState | never> {
   const user = await currentUser();
-  if (!user) return;
+  if (!user) return { error: "You are not signed in." };
 
   const id = String(formData.get("id") ?? "");
-  if (!(await canManageClass(user, id))) return;
+  if (!(await canManageClass(user, id))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   await runSql("DELETE FROM class WHERE id = ?", id);
   revalidatePath("/classes");
+  redirect("/classes");
 }
 
 export async function renameClass(
@@ -297,6 +343,9 @@ export async function renameClass(
   if (!(await canManageClass(user, classId))) {
     return { error: "You can only manage classes you advise." };
   }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Section name is required." };
@@ -390,6 +439,9 @@ export async function enrollStudent(
     return { error: "You can only manage classes you advise." };
   }
 
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
+
   const lrn = String(formData.get("lrn") ?? "").trim();
   const surname = String(formData.get("surname") ?? "").trim();
   const firstname = String(formData.get("firstname") ?? "").trim();
@@ -445,6 +497,9 @@ export async function enrollFromTemplate(
   if (!(await canManageClass(user, classId))) {
     return { error: "You can only manage classes you advise." };
   }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   const file = formData.get("file");
   if (!file || typeof file === "string") return { error: "Choose a CSV file to upload." };
@@ -502,14 +557,23 @@ export async function enrollFromTemplate(
   };
 }
 
-export async function unenrollStudent(formData: FormData): Promise<void> {
+export async function unenrollStudent(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
   const user = await currentUser();
-  if (!user) return;
+  if (!user) return { error: "You are not signed in." };
 
   const classId = String(formData.get("classId") ?? "");
-  if (!(await canManageClass(user, classId))) return;
+  if (!(await canManageClass(user, classId))) {
+    return { error: "You can only manage classes you advise." };
+  }
+
+  const passwordError = await checkAuthPassword(user, String(formData.get("password") ?? ""));
+  if (passwordError) return { error: passwordError };
 
   const studentId = String(formData.get("studentId") ?? "");
   await runSql("DELETE FROM enrollment WHERE classId = ? AND studentId = ?", classId, studentId);
   revalidatePath(`/classes/${classId}`);
+  return { ok: true };
 }
